@@ -2,7 +2,13 @@ from flask import Flask, render_template, request
 from bitstring import BitArray
 
 def booth(m,r):
-	x=y=8
+	x = len(bin(m))
+	y = len(bin(r))
+	#after both numbers are negative, for some reason, the answer is one less than whats expected.
+	if m<0 and r<0:
+		bugbit=1
+	else:
+		bugbit = 0
 	totalLength = x+y + 1
 	mA = BitArray(int = m, length = totalLength)
 	# what we do here is , BIT WISE left shift, toh we shift it by y+1 bits
@@ -17,6 +23,7 @@ def booth(m,r):
 			P = BitArray(int = P.int +compliment.int, length = totalLength) #  1 0 ? 1-0 (S has two's compliment )
 		P = BitArray(int=P.int >> 1,length=totalLength) #shift
 	P = P[:-1] #manditory shift if not shifted.
+	P.int = P.int + bugbit
 	return '<h1>RESULT</h1><br><h3>decimal value: '+str(P.int)+'</br><br> binary value: '+str(P.bin)
 
 # flask starts here
@@ -31,16 +38,16 @@ def hello_world():
 @app.route('/', methods = ['POST'])
 # 3 general methods: post, get , put. We use post to get whats there in tabs
 def my_form_post():
-    multiplicand = request.form['Multiplicand']
-    multiplier = request.form['Multiplier']
-    try:
-        multiplicand = int(multiplicand)
-        multiplier = int(multiplier)
-    except:
-        return "<h1>ERROR</h1><br>Only one item for multiplication of two found"
+	multiplicand = request.form['Multiplicand']
+	multiplier = request.form['Multiplier']
+	try:
+		multiplicand = int(multiplicand)
+		multiplier = int(multiplier)
+	except:
+		return "<h1>ERROR</h1><br>Only one item for multiplication of two found"
+
 	return booth(multiplicand, multiplier)
 
 if __name__ == '__main__':
     app.debug = True
     app.run()
-
