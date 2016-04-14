@@ -25,20 +25,22 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-	return render_template('hello.html')
+    return render_template('hello.html')
 
 
 @app.route('/', methods = ['POST'])
 # 3 general methods: post, get , put. We use post to get whats there in tabs
 def my_form_post():
-
-    text = request.form['Multiplier']
-    multiplier = int(text)
-    text = request.form['Multiplicand']
-    multiplicand = int(text)
-    return booth(multiplicand, multiplier)
+    multiplicand = request.form['Multiplicand']
+    multiplier = request.form['Multiplier']
+    try:
+        multiplicand = int(multiplicand)
+        multiplier = int(multiplier)
+    except:
+        return "<h1>ERROR</h1><br>Only one item for multiplication of two found"
+	return booth(multiplicand, multiplier)
 
 if __name__ == '__main__':
-    #app.debug = True
+    app.debug = True
     app.run()
 
