@@ -5,8 +5,12 @@ def booth(m,r):
 	x = len(bin(m))
 	y = len(bin(r))
 	#after both numbers are negative, for some reason, the answer is one less than whats expected.
-	if m<0 and r<0:
-		bugbit=1
+	if m < 0 and r < 0:
+		bugbit = 1
+	elif m < 0:
+		bugbit = 0
+	elif r<0:
+		bugbit = 1
 	else:
 		bugbit = 0
 	totalLength = x+y + 1
@@ -38,14 +42,14 @@ def hello_world():
 @app.route('/', methods = ['POST'])
 # 3 general methods: post, get , put. We use post to get whats there in tabs
 def my_form_post():
-	multiplicand = request.form['Multiplicand']
-	multiplier = request.form['Multiplier']
+	r = request.form['Multiplicand']
+	m = request.form['Multiplier']
 	try:
-		multiplicand = int(multiplicand)
-		multiplier = int(multiplier)
+		multiplicand = int(m)
+		multiplier = int(r)
 	except:
 		return "<h1>ERROR</h1><br>Only one item for multiplication of two found"
-
+	print multiplicand,multiplier
 	return booth(multiplicand, multiplier)
 
 if __name__ == '__main__':
