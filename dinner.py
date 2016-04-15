@@ -17,7 +17,7 @@ posts = db.posts
 
 
 '''
-
+#queue is actually a stack, will change the variable name later. 
 myQueue = []
 class Philosopher(threading.Thread):
 
