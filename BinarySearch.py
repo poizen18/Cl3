@@ -1,0 +1,31 @@
+import math
+
+try:
+    array = raw_input('enter array array: ')
+    array = map(int, array.split())
+    print '\n The unsorted array is : ', array
+    array.sort()
+    print '\n The sorted array is : ', array
+except ValueError:
+    print 'enter numbers bro'
+    exit(1)
+
+def binarysearch(arr, low, high, key ):
+    if low == high:
+        if arr[low] == key:
+            print '\n value ', key, ' found at index : ', low+1
+        else:
+            print '\n value ', key, 'not found in array: \t ', arr
+            exit(1)
+    else:
+        mid = int(math.ceil((low + high+1) / 2))
+        if arr[mid] == key:
+            print '\n value ', key, ' found at index : ', mid+1
+        elif key < arr[mid]:
+                binarysearch(arr, low, mid-1, key)
+        else:
+                binarysearch(arr, mid+1, high, key)
+
+
+keyy = raw_input('Enter the value to search : ')
+binarysearch(array, 0, len(array)-1, int(keyy))
