@@ -4,3 +4,9 @@ dependencies :
 install mongodb
 install these libraries: 
   
+  haters gon hate 😎
+
+other codes: 
+> sudo apt-get install python-pip
+> sudo pip install Flask bitstring pymongo threading 
+
