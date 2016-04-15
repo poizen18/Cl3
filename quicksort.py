@@ -2,40 +2,62 @@ from multiprocessing import Process, Pipe
 import xml.etree.ElementTree as ET
 import random
 import time
-# pconn = parent connection, cconn = child connection
-# when you start new process the child process inherits the pipes of parents
-# but when child closes conn the parent still has child connection open
-# bug: sometimes when pivot is selected as -1 ,
-# the list drops some elements:
-# TODO: add extra statement after selecting pivot, to check if its negative,
-# TODO: if it is, take pivot again
-# the code is easy to understand and if elements are very high, say N=100000
-# code is very fast.
+# the quicksort method im using is In a Haskell fashion --
+#
+# def qsort(L):
+#    return (qsort([y for y in L[1:] if y < L[0]]) +
+#            L[:1] +
+#            qsort([y for y in L[1:] if y >= L[0]])) if len(L) > 1 else L
+# you can find more reference here: http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Python
 
+
+# creating the xml file/ writing to it
+# this i copied shamelessly from the code create_file.py nikhilesh sent on teacomputer :P
+# i changed random.randomint to random.random :) it is appending float values
+
+# another very clever thing done, and why this code is so efficient is, that my left process never
+# has to communicate with right process
+# Read the code ;) its magic.
+
+#ccon and pcon are 'child' and 'parent' pipes :) pani idhar se udhar bhejneku use karte apan loga
+
+
+N = 50000 # kitna elements leneka ye idhar dalneka
+file = open('array.xml','w')
+file.write("<Numbers>\n")
+for i in range(N):
+    file.write("\t<integer num = \""+str(random.random())+"\" ></integer>\n")
+file.write("</Numbers>\n")
+file.close()
+
+# quick wala class
 class Quick:
+    #this qck is serial quicksort
     def qck(self,arr):
         if len(arr) <= 1:
             return arr
-        pivot = arr.pop(random.randint(0, len(arr)-1))
-        return self.qck([x for x in arr if x < pivot]) + [pivot] + self.qck([x for x in arr if x >= pivot])
 
-
+        else:
+            pivot = arr.pop(random.randint(0, len(arr)-1))
+            return self.qck([x for x in arr if x < pivot]) + [pivot] + self.qck([x for x in arr if x >= pivot])
+    #this is parallel quicksort
     def quicksort(self,arr, conn, procNum):
-        if procNum <= 0 or len(arr) <= 1:
+
+
+        if procNum <= 0 or len(arr)<= 1:
             conn.send(self.qck(arr))
             conn.close()
             return
-
+        #print 'Just in case you don't trust that this program works better than other quicksorts :3 FUBAR. process id:', os.getppid()
         pivot = arr.pop(random.randint(0, len(arr)-1))
+
         leftSide = [x for x in arr if x < pivot]
         rightSide = [x for x in arr if x > pivot]
 
         pconnLeft, cconnLeft = Pipe()
-
         leftProc = Process(target= self.quicksort, args=(leftSide, cconnLeft,procNum -1))
 
         pconnRight, cconnRight = Pipe()
-
         rightProc = Process(target=self.quicksort, args=(rightSide, cconnRight, procNum - 1))
 
         leftProc.start()
@@ -54,53 +76,34 @@ class Quick:
                 return False
         return True
 
-
-# try to add more elements to the xml doc. more the elements, faster the code will be from serial code
+# reading from xml file
 tree = ET.parse('array.xml')
 root = tree.getroot()
 array =[]
-for i in root.itertext():
-    i = i.strip()
-    if i != '':
-        array.append(int(i))
+for value in root.iter('integer'):
+    array.append(float(value.attrib.values()[0]))
 if len(array) == 0:
-    print 'list empty. abort'
+    print ('list empty. abort')
     exit(1)
 
-foolist = list(array)
-length = len(foolist)
-print 'length of array is: ', length
 
 foo = Quick()  # AIM said: A class :P here it is, a classy code.
-#N = 500000
-#foolist = [random.random() for x in range(N)]
 
-n = 4
+length = len(array)
+print length
+# n = number of processes you want :) you can print 'process id:', os.getppid()
+# os.getpid will return the process id of other processes spawned by our initial processes.
+n = 3
 pconn, cconn = Pipe()
 start = time.time()
-p = Process(target=foo.quicksort, args=(foolist, cconn, n))
+p = Process(target=foo.quicksort, args=(array, cconn, n))
 p.start()
-foolist = pconn.recv()
+array = pconn.recv()
 p.join()
 elapsed = time.time() - start
 
-print 'time taken by parallel : ', elapsed
+if foo.isSorted(array) is True:
+    if len(array) == length:
+        print 'sorted'
+        print 'time taken by parallel : ', elapsed
 
-if foo.isSorted(foolist) is True:
-    if len(foolist) == length:
-        print 'sorted with ', len(foolist),'\n',foolist
-    else:
-        print 'SORTED but kuch toh giraya. ', len(foolist)
-
-
-'''
-start = time.time()
-boo = qck(foolist2)
-elapsedserial = time.time() - start
-print 'serial took: ', elapsedserial
-
-if(elapsedserial < elapsed):
-    print 'serial code is faster bro by: ',elapsed-elapsedserial
-else:
-    print 'parallel is faster than serial by: ',elapsedserial - elapsed
-'''
