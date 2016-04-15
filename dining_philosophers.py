@@ -2,7 +2,7 @@ import threading
 import random
 import time
 from pymongo import MongoClient
-# TODO : USE SIMULATOR TO GATHER DATA VIA WSN  
+# TODO : USE SIMULATOR TO GATHER DATA VIA WSN
 # create connection
 
 client = MongoClient()
@@ -31,10 +31,10 @@ class Philosopher(threading.Thread):
         while(self.running):
             if(len(myStack)!=0):
                 time.sleep(random.uniform(3,13))
-                print '%s is hungry.' %self.name
+                print '\n%s is hungry.' %self.name
                 self.dine()
             else:
-                print '%s has Nothing to eat.' %self.name
+                print '\n%s has Nothing to eat.' %self.name
                 self.running = False
 
     def dine(self):
@@ -45,7 +45,7 @@ class Philosopher(threading.Thread):
             locked = fork2.acquire(False)
             if locked: break # lolwut
             fork1.release()
-            print '%s swaps forks' % self.name
+            print '\n%s swaps forks' % self.name
             fork1, fork2 = fork2,fork1
         else:
             return
@@ -57,20 +57,20 @@ class Philosopher(threading.Thread):
     def dinning(self):
         try:
             self.kya_khara = myStack.pop()
-            print '%s starts eating ' % self.name, self.kya_khara, '\n'
+            print '\n%s starts eating ' % self.name, self.kya_khara, '\n'
             foo = {"Philosopher": self.name,
                    "Food Item" : self.kya_khara}
             time.sleep(random.uniform(1, 10))
-            print '%s finishes eating and leaves to think' % self.name
+            print '\n%s finishes eating and leaves to think' % self.name
             try:
-                post_id= posts.insert_one(foo).inserted_id
-                print post_id
+                posts.insert_one(foo).inserted_id
+                #print post_id
             except:
-                print 'foo '
+                print '##################################### DB ERROR '
                 pass
 
         except IndexError:
-            print '\n %s has nothing to Eat' %self.name
+            print '\n%s has nothing to Eat' %self.name
             self.running = False
 
 
@@ -83,7 +83,7 @@ def DiningPhilosophers():
 
     for i in range (random.randint(10,20)):
         myStack.append(foodItems[random.randint(0,len(foodItems)-1)])
-    print 'Food items available: ',myStack
+    print '\nFood items available: ',myStack
 
     philosophers = [Philosopher(philosopherNames[i],forks[i%5],forks[(i+1)%5]) for i in range(5)]
 
@@ -92,7 +92,7 @@ def DiningPhilosophers():
     for p in philosophers: p.start()
     time.sleep(60)
     Philosopher.running = False
-    print 'Now we are finishing.'
+    print '\nNow we are finishing.'
 
 DiningPhilosophers()
 
