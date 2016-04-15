@@ -1,66 +1,100 @@
 import threading
 import random
 import time
+from pymongo import MongoClient
 
-# Dining philosophers, 5 Phillies with 5 forks. Must have two forks to eat.
-#
-# Deadlock is avoided by never waiting for a fork while holding a fork (locked)
-# Procedure is to do block while waiting to get first fork, and a nonblocking
-# acquire of second fork.  If failed to get second fork, release first fork,
-# swap which fork is first and which is second and retry until getting both.
-#
-# See discussion page note about 'live lock'.
+# create connection
+'''
+client = MongoClient()
 
+client = MongoClient('localhost',27017)
+db = client.test_database
+db = client['test-database']
+collection = db.test_collection
+posts = db.posts
+
+
+
+
+'''
+
+myQueue = []
 class Philosopher(threading.Thread):
 
     running = True
-
-    def __init__(self, xname, forkOnLeft, forkOnRight):
+    global myQueue
+    global posts
+    def __init__(self,xname,forkOnLeft,forkOnRight):
         threading.Thread.__init__(self)
         self.name = xname
         self.forkOnLeft = forkOnLeft
         self.forkOnRight = forkOnRight
 
+
     def run(self):
         while(self.running):
-            #  Philosopher is thinking (but really is sleeping).
-            time.sleep( random.uniform(3,13))
-            print '%s is hungry.' % self.name
-            self.dine()
+            if(len(myQueue)!=0):
+                time.sleep(random.uniform(3,13))
+                print '%s is hungry.' %self.name
+                self.dine()
+            else:
+                print '%s has Nothing to eat.' %self.name
+                self.running = False
 
     def dine(self):
         fork1, fork2 = self.forkOnLeft, self.forkOnRight
 
         while self.running:
-            fork1.acquire(True)
+            f=fork1.acquire(True)
             locked = fork2.acquire(False)
-            if locked: break
+            if locked: break # lolwut
             fork1.release()
             print '%s swaps forks' % self.name
-            fork1, fork2 = fork2, fork1
+            fork1, fork2 = fork2,fork1
         else:
             return
 
-        self.dining()
+        self.dinning()
         fork2.release()
         fork1.release()
 
-    def dining(self):
-        print '%s starts eating '% self.name
-        time.sleep(random.uniform(1,10))
-        print '%s finishes eating and leaves to think.' % self.name
+    def dinning(self):
+        try:
+            self.kya_khara = myQueue.pop()
+            print '%s starts eating ' % self.name, self.kya_khara, '\n'
+            foo = {"Philosopher": self.name,
+                   "Food Item" : self.kya_khara}
+            time.sleep(random.uniform(1, 10))
+            print '%s finishes eating and leaves to think' % self.name
+            #try:
+            #    post_id= posts.insert_one(foo).inserted_id
+            #except:
+            #    pass
+
+        except IndexError:
+            print '\n %s has nothing to Eat' %self.name
+            self.running = False
+
 
 def DiningPhilosophers():
-    forks = [threading.Lock() for n in range(5)] #these are my 5 forks
-    philosopherNames = ('Aristotle','Kant','Buddha','Marx', 'Russel') #these are gg people
+    global myQueue
+    forks = [threading.Lock() for n in range(5)]
+    philosopherNames =('Chutiya','Bulla','Pappu Pager','Lamboo Aata','Ibu Hatela')
 
-    philosophers = [Philosopher(philosopherNames[i], forks[i%5], forks[(i+1)%5]) for i in range(5)]
-    random.seed(507129)
+    foodItems = ('vadapav','meduvada','dosa','idli sambar','pohe with peas','samosa','burger','pizza')
+
+    for i in range (random.randint(10,20)):
+        myQueue.append(foodItems[random.randint(0,len(foodItems)-1)])
+    print 'Food items available: ',myQueue
+
+    philosophers = [Philosopher(philosopherNames[i],forks[i%5],forks[(i+1)%5]) for i in range(5)]
+
+    random.seed(1200)
     Philosopher.running = True
-    for p in philosophers:  p.start()
-
-    time.sleep(100)
+    for p in philosophers: p.start()
+    time.sleep(60)
     Philosopher.running = False
-    print ("Now we're finishing.")
+    print 'Now we are finishing.'
 
 DiningPhilosophers()
+
