@@ -8,5 +8,6 @@ install these libraries:
 
 other codes: 
 > sudo apt-get install python-pip
+-
 > sudo pip install Flask bitstring pymongo threading 
 
