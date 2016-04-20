@@ -1,31 +1,37 @@
 import math
+f = open ('array.txt','r')
+f = f.readlines()
+array = []
+for i in range (len(f)):
+    if not f[i] =='':
+        try:
+            number = int(f[i].strip())
+            array.append(number)
+        except ValueError:
+            pass
 
+array.sort()
+print array
+key = input("\n\nenter the value you want to search :")
 try:
-    array = raw_input('enter array array: ')
-    array = map(int, array.split())
-    print '\n The unsorted array is : ', array
-    array.sort()
-    print '\n The sorted array is : ', array
+    key = int(key)
 except ValueError:
-    print 'enter numbers bro'
+    print 'enter an integer, Exiting.'
     exit(1)
+print 'key entered is: ', key
 
-def binarysearch(arr, low, high, key ):
-    if low == high:
-        if arr[low] == key:
-            print '\n value ', key, ' found at index : ', low+1
-        else:
-            print '\n value ', key, 'not found in array: \t ', arr
-            exit(1)
+
+def binarysearch(arr,low,high):
+    global key
+    mid = int(math.ceil(low+high/2))
+    if (arr[mid]==key):
+        print '\n', key, ' found at index ', mid+1
+
     else:
-        mid = int(math.ceil((low + high+1) / 2))
-        if arr[mid] == key:
-            print '\n value ', key, ' found at index : ', mid+1
-        elif key < arr[mid]:
-                binarysearch(arr, low, mid-1, key)
-        else:
-                binarysearch(arr, mid+1, high, key)
+        if key<arr[mid]: binarysearch(arr,0,mid-1)
+        if key>arr[mid]: binarysearch(arr,mid+1,high)
 
 
-keyy = raw_input('Enter the value to search : ')
-binarysearch(array, 0, len(array)-1, int(keyy))
+
+
+binarysearch(array,0,len(array)-1)
