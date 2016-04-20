@@ -1,56 +1,44 @@
 from flask import Flask, render_template, request
-#from difflib import SequenceMatcher
-#import re
-# TODO: add uploading file option bro.
+
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
-    return render_template('plag.html')
+def home():
+    return render_template('home.html')
 
-@app.route('/', methods = ['POST'])
-def my_form_post():
-    file1 = request.form['txt']
-    file2 = request.form['text']
-    count=0
-    '''
-    # lol, external pagal ho jayenga xD
-    similarity_ratio = SequenceMatcher(None,file1,file2).ratio()*100
-    if similarity_ratio > 70:
-        return '<h1>plagarism has BEEN detected with documents being ' + str(similarity_ratio) + '% similar'
-    else:
-        return '<h1>plagarism has NOT BEEN detected with documents being ' + str(similarity_ratio) + '% similar'
-    '''
-    # accepted stuff is in unicode mein hai, so :
-    filelist1=file1.encode('utf8')
-    filelist2 = file2.encode('utf8')
+@app.route('/',methods = ['POST'])
+def checkpost():
+    stopwords = ('a','is','and','this','the','has','for','it')
+    text1 = request.form['txt1']
+    text2 = request.form['txt2']
+    text1 = text1.encode('utf8')
+    text2 = text2.encode('utf8')
 
-    foo = filelist1.replace('.',' ')
-    bar = filelist2.replace('.', ' ')
-    foo= foo.replace(',',' ')
-    foo = foo.replace(';', ' ')
-    bar = bar.replace(',', ' ')
-    bar = bar.replace(';', ' ')
-    filelist1= foo
-    filelist2 = bar
-    filelist1=filelist1.split(' ')
-    filelist2=filelist2.split(' ')
+    text1 = text1.strip()
+    text2 = text2.strip()
 
-    #print filelist1, filelist2
-    same_words= set(filelist1) & set(filelist2)
-    count=len(same_words)
+    text2 = text2.replace('.', ' ')
+    text2 = text2.replace(',', ' ')
+    text2 = text2.replace(';', ' ')
+    text2 = text2.replace('-', ' ')
+    text2 = text2.split(' ')
+    text1 = text1.replace('.', ' ')
+    text1 = text1.replace(',', ' ')
+    text1 = text1.replace(';', ' ')
+    text1 = text1.replace('-', ' ')
+    text1 = text1.split(' ')
+    text1 = set(text1) - set(stopwords)
+    text2 = set(text2) - set(stopwords)
+    common = (set(text1) & set(text2))
+    commonlen =len(common)
+    totallen = float((len(text1)+len(text2))/2)
+    try:
+        ratio = float(commonlen/totallen)*100
+    except ZeroDivisionError:
+        ratio = 0
 
+    return 'plagiarism has been detected by: '+str(ratio)+"% "
 
-    similarity_ratio1= float(count)/len(filelist1)
-    similarity_ratio2= float(count)/len(filelist2)
-    mean_ratio=  (similarity_ratio1+similarity_ratio2)/2
-    similarity_ratio=mean_ratio*100
-
-    if similarity_ratio > 69:  # :P huehuehue
-        return '<h1>plagarism has BEEN detected with documents being ' + str(similarity_ratio) + '% similar'
-    else:
-        return '<h1>plagarism has NOT BEEN detected with documents being ' + str(similarity_ratio) + '% similar'
-
-
-if __name__ == '__main__':
+if __name__=="__main__":
+    app.debug = True
     app.run()
